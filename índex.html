@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L GONÇALVES — Controle de Ponto</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={
+ darkMode:'class',
+ theme:{extend:{colors:{
+  darkBg:'#0a0a0c',cardBg:'#121216',inputBg:'#18181c',accentBlue:'#2563eb'
+ }}}
+};
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body{font-family:Inter,sans-serif}
+@media print{
+ body{background:white!important;color:black!important}
+ .no-print{display:none!important}
+}
+</style>
+
+<style id="lg-animations">
+/* ===== ANIMAÇÕES L GONÇALVES ===== */
+:root{
+    --lg-ease:cubic-bezier(.22,1,.36,1);
+    --lg-fast:180ms;
+    --lg-normal:360ms;
+}
+
+/* Entrada suave da aplicação */
+#app{
+    animation:lgAppIn .55s var(--lg-ease) both;
+}
+@keyframes lgAppIn{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+/* Cards e painéis */
+.bg-cardBg{
+    transition:
+        transform var(--lg-normal) var(--lg-ease),
+        border-color var(--lg-normal) ease,
+        box-shadow var(--lg-normal) ease;
+}
+.bg-cardBg:hover{
+    border-color:rgba(63,63,70,.95);
+    box-shadow:0 14px 40px rgba(0,0,0,.18);
+}
+main .bg-cardBg{
+    animation:lgCardIn .55s var(--lg-ease) both;
+}
+main .bg-cardBg:nth-child(2){animation-delay:40ms}
+main .bg-cardBg:nth-child(3){animation-delay:80ms}
+main .bg-cardBg:nth-child(4){animation-delay:120ms}
+@keyframes lgCardIn{
+    from{opacity:0;transform:translateY(12px) scale(.985)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Botões */
+button{
+    transition:
+        transform var(--lg-fast) var(--lg-ease),
+        filter var(--lg-fast) ease,
+        box-shadow var(--lg-fast) ease,
+        background-color var(--lg-fast) ease;
+}
+button:hover{
+    transform:translateY(-1px);
+}
+button:active{
+    transform:translateY(1px) scale(.97);
+}
+
+/* Botões azuis */
+button.bg-blue-600:hover,
+button.bg-blue-500:hover{
+    box-shadow:0 8px 24px rgba(37,99,235,.22);
+}
+
+/* Inputs */
+input,select,textarea{
+    transition:
+        border-color var(--lg-fast) ease,
+        box-shadow var(--lg-fast) ease,
+        transform var(--lg-fast) var(--lg-ease);
+}
+input:focus,select:focus,textarea:focus{
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+/* Terminal */
+#punch-code-input{
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms var(--lg-ease);
+}
+#punch-code-input:focus{
+    transform:scale(1.015);
+    box-shadow:0 0 0 4px rgba(37,99,235,.08),0 10px 30px rgba(37,99,235,.08);
+}
+
+/* Feedback */
+#terminal-feedback:not(.hidden){
+    animation:lgFeedback .45s var(--lg-ease) both;
+}
+@keyframes lgFeedback{
+    from{opacity:0;transform:translateY(-8px) scale(.97)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Logo */
+.w-8.h-8.rounded-lg.bg-blue-600,
+.w-7.h-7.rounded-lg.bg-blue-600{
+    animation:lgLogoPulse 3s ease-in-out infinite;
+}
+@keyframes lgLogoPulse{
+    0%,100%{box-shadow:0 0 0 rgba(37,99,235,0)}
+    50%{box-shadow:0 0 22px rgba(37,99,235,.22)}
+}
+
+/* Tabelas */
+tbody tr{
+    transition:background-color var(--lg-fast) ease,transform var(--lg-fast) var(--lg-ease);
+}
+tbody tr:hover{
+    background:rgba(39,39,42,.35);
+}
+
+/* Badges */
+.rounded-full{
+    transition:transform var(--lg-fast) var(--lg-ease);
+}
+.rounded-full:hover{
+    transform:translateY(-1px);
+}
+
+/* Sidebar */
+aside nav button{
+    position:relative;
+    overflow:hidden;
+}
+aside nav button::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:50%;
+    width:3px;
+    height:0;
+    border-radius:999px;
+    background:#2563eb;
+    transform:translateY(-50%);
+    transition:height var(--lg-normal) var(--lg-ease);
+}
+aside nav button:hover::before,
+aside nav button.bg-blue-600\/10::before{
+    height:60%;
+}
+
+/* Spinner para ações */
+.lg-loading{
+    position:relative;
+    pointer-events:none;
+    opacity:.75;
+}
+.lg-loading::after{
+    content:"";
+    display:inline-block;
+    width:13px;
+    height:13px;
+    margin-left:8px;
+    vertical-align:-2px;
+    border:2px solid rgba(255,255,255,.25);
+    border-top-color:currentColor;
+    border-radius:50%;
+    animation:lgSpin .65s linear infinite;
+}
+@keyframes lgSpin{
+    to{transform:rotate(360deg)}
+}
+
+/* Brilho discreto no terminal */
+.max-w-md.mx-auto.w-full.bg-cardBg{
+    position:relative;
+    overflow:hidden;
+}
+.max-w-md.mx-auto.w-full.bg-cardBg::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background:linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(37,99,235,.07) 48%,
+        transparent 72%
+    );
+    transform:translateX(-100%);
+    animation:lgShine 5s ease-in-out infinite;
+    pointer-events:none;
+}
+@keyframes lgShine{
+    0%,55%{transform:translateX(-100%)}
+    75%,100%{transform:translateX(100%)}
+}
+
+/* Relógio */
+.live-clock{
+    transition:opacity .25s ease;
+}
+
+/* Respeita acessibilidade */
+@media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+        animation-duration:.01ms!important;
+        animation-iteration-count:1!important;
+        scroll-behavior:auto!important;
+        transition-duration:.01ms!important;
+    }
+}
+
+/* Impressão */
+@media print{
+    #app{animation:none!important}
+    .bg-cardBg,tbody tr{animation:none!important;box-shadow:none!important}
+}
+</style>
+
+</head>
+<body class="bg-darkBg text-zinc-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+<div id="app" class="flex-1 flex flex-col"></div>
+
+<script>
+const DB={
+ init(){
+  if(!localStorage.getItem('lgoncalves_users')) localStorage.setItem('lgoncalves_users',JSON.stringify([
+   {id:'u1',name:'Administrador',email:'admin@obra.com',pass:'9070',role:'ADMIN',cargo:'Gestor da Obra',setor:'Administração',active:true},
+   {id:'u2',name:'Carlos Silva',code:'1002',role:'EMPLOYEE',cargo:'Operador',setor:'Obra Principal',active:true}
+  ]));
+  if(!localStorage.getItem('lgoncalves_records')) localStorage.setItem('lgoncalves_records','[]');
+  if(!localStorage.getItem('lgoncalves_audit')) localStorage.setItem('lgoncalves_audit','[]');
+  if(!localStorage.getItem('lgoncalves_settings')) localStorage.setItem('lgoncalves_settings',JSON.stringify({
+   companyName:'L Gonçalves Construtora & Obra',cnpj:'12.345.678/0001-99',timezone:'America/Sao_Paulo',tolerance:10
+  }));
+ },
+ getUsers(){return JSON.parse(localStorage.getItem('lgoncalves_users')||'[]')},
+ saveUsers(u){localStorage.setItem('lgoncalves_users',JSON.stringify(u))},
+ getRecords(){return JSON.parse(localStorage.getItem('lgoncalves_records')||'[]')},
+ saveRecord(r){const x=this.getRecords();x.push(r);localStorage.setItem('lgoncalves_records',JSON.stringify(x))},
+ saveRecordsDirect(r){localStorage.setItem('lgoncalves_records',JSON.stringify(r))},
+ getAudit(){return JSON.parse(localStorage.getItem('lgoncalves_audit')||'[]')},
+ saveAudit(a){const x=this.getAudit();x.push(a);localStorage.setItem('lgoncalves_audit',JSON.stringify(x))},
+ getSettings(){return JSON.parse(localStorage.getItem('lgoncalves_settings')||'{}')},
+ saveSettings(s){localStorage.setItem('lgoncalves_settings',JSON.stringify(s))}
+};
+DB.init();
+
+let currentRoute='terminal';
+let currentAdmin=JSON.parse(sessionStorage.getItem('lgoncalves_admin'))||null;
+let adminTab='dashboard';
+let filterEmp='all',filterDate='';
+let reportMonth=new Date().toISOString().slice(0,7);
+
+function navigate(route){currentRoute=route;render();window.scrollTo(0,0)}
+
+function render(){
+ const app=document.getElementById('app');if(!app)return;
+ app.innerHTML='';
+ if(currentRoute==='terminal'){app.innerHTML=renderTerminalPage();initClock()}
+ else if(currentRoute==='admin-login'){app.innerHTML=renderAdminLoginPage()}
+ else if(currentRoute==='admin-dashboard'){
+  if(!currentAdmin){navigate('admin-login');return}
+  app.innerHTML=renderAdminDashboardView();initClock()
+ }
+}
+
+function initClock(){
+ if(window.__clockInterval)clearInterval(window.__clockInterval);
+ window.__clockInterval=setInterval(()=>{
+  document.querySelectorAll('.live-clock').forEach(c=>c.innerText=new Date().toLocaleString('pt-BR'))
+ },1000)
+}
+
+function renderTerminalPage(){
+ const s=DB.getSettings();
+ return `<div class="min-h-screen flex flex-col justify-between p-4 md:p-8">
+  <div class="flex justify-between items-center max-w-4xl mx-auto w-full">
+   <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm">L</div><span class="font-bold text-base text-white">${s.companyName||'L GONÇALVES'}</span></div>
+   <div class="text-right"><span class="live-clock text-sm font-mono font-bold text-blue-400">--/--/---- --:--:--</span><p class="text-[11px] text-zinc-400">Terminal Oficial</p></div>
+  </div>
+  <div class="max-w-md mx-auto w-full bg-cardBg border border-zinc-800/80 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 my-auto">
+   <div class="text-center space-y-1"><h1 class="text-xl font-bold text-white">Registro de Ponto</h1><p class="text-xs text-zinc-400">Digite seu código PIN de 4 dígitos</p></div>
+   <div id="terminal-feedback" class="hidden p-3 rounded-xl text-center text-xs"></div>
+   <form onsubmit="handlePunchSubmit(event)" class="space-y-4">
+    <input type="text" id="punch-code-input" inputmode="numeric" pattern="[0-9]*" required maxlength="4" autocomplete="off" autofocus class="w-full bg-inputBg border border-zinc-800 rounded-2xl py-4 text-center text-3xl font-mono tracking-widest text-blue-400 focus:outline-none focus:border-blue-600 transition" placeholder="0000">
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-blue-600/30">Registrar Ponto</button>
+   </form>
+  </div>
+  <div class="text-center"><button onclick="navigate('admin-login')" class="text-xs text-zinc-500 hover:text-zinc-300 transition underline">Área do Administrador</button></div>
+ </div>`
+}
+
+function handlePunchSubmit(e){
+ e.preventDefault();
+ const input=document.getElementById('punch-code-input');if(!input)return;
+ const code=input.value.trim(),users=DB.getUsers();
+ const user=users.find(u=>u.code===code&&u.role==='EMPLOYEE'&&u.active!==false);
+ if(!user){showFeedback('Código PIN inválido ou funcionário desativado.','error');input.value='';return}
+ const today=new Date().toDateString();
+ const recs=DB.getRecords().filter(r=>r.userId===user.id&&new Date(r.timestamp).toDateString()===today);
+ if(recs.length>=4){showFeedback(`${user.name}: Jornada de hoje já foi totalmente concluída.`,'error');input.value='';return}
+ const type=['Entrada','Intervalo','Retorno','Saída'][recs.length];
+ DB.saveRecord({id:'r_'+Math.random().toString(36).substr(2,9),userId:user.id,userName:user.name,cargo:user.cargo,type,timestamp:new Date().toISOString()});
+ showFeedback(`✓ ${user.name} — ${type} registrada com sucesso!`,'success');input.value='';
+}
+
+function showFeedback(msg,type){
+ const fb=document.getElementById('terminal-feedback');if(!fb)return;
+ fb.innerText=msg;
+ fb.className=`p-3 rounded-xl text-center text-xs font-medium ${type==='success'?'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400':'bg-red-500/10 border border-red-500/20 text-red-400'}`;
+ fb.classList.remove('hidden');
+ fb.style.animation='none';
+ void fb.offsetWidth;
+ fb.style.animation='lgFeedback .45s var(--lg-ease) both';
+ setTimeout(()=>fb.classList.add('hidden'),4000);
+}
+
+function renderAdminLoginPage(){
+ return `<div class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-cardBg border border-zinc-800/80 rounded-2xl p-8 shadow-2xl space-y-6">
+   <div class="text-center"><h1 class="text-2xl font-bold text-white">L GONÇALVES Admin</h1><p class="text-xs text-zinc-400 mt-1">Acesso restrito ao gestor</p></div>
+   <div id="admin-login-error" class="hidden p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg text-center"></div>
+   <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+    <div><label class="block text-xs font-medium text-zinc-400 mb-1">E-mail</label><input type="email" id="admin-email" required class="w-full bg-inputBg border border-zinc-800 rounded-lg px-4 py-2.5 text-white text-sm" placeholder="admin@obra.com"></div>
+    <div><label class="block text-xs font-medium text-zinc-400 mb-1">Senha</label><input type="password" id="admin-pass" required class="w-full bg-inputBg border border-zinc-800 rounded-lg px-4 py-2.5 text-white text-sm" placeholder="••••••••"></div>
+    <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg text-sm">Entrar no Painel</button>
+   </form>
+   <div class="flex justify-between items-center text-xs pt-4 border-t border-zinc-800/80">
+    <button onclick="navigate('terminal')" class="text-zinc-400 hover:text-white">← Voltar ao Terminal</button>
+    <span class="text-zinc-500"><strong>admin@obra.com</strong> / <strong>9070</strong></span>
+   </div>
+  </div>
+ </div>`
+}
+
+function handleAdminLogin(e){
+ e.preventDefault();
+ const email=document.getElementById('admin-email').value.trim(),pass=document.getElementById('admin-pass').value.trim();
+ const admin=DB.getUsers().find(u=>u.email===email&&u.role==='ADMIN'&&u.pass===pass);
+ if(!admin){const err=document.getElementById('admin-login-error');err.innerText='E-mail ou senha incorretos.';err.classList.remove('hidden');return}
+ currentAdmin=admin;sessionStorage.setItem('lgoncalves_admin',JSON.stringify(admin));navigate('admin-dashboard')
+}
+function adminLogout(){currentAdmin=null;sessionStorage.removeItem('lgoncalves_admin');navigate('terminal')}
+function setAdminTab(tab){adminTab=tab;render()}
+
+function renderAdminDashboardView(){
+ const users=DB.getUsers(),employees=users.filter(u=>u.role==='EMPLOYEE'),records=DB.getRecords(),audit=DB.getAudit(),settings=DB.getSettings();
+ const today=new Date().toDateString(),todayIds=[...new Set(records.filter(r=>new Date(r.timestamp).toDateString()===today).map(r=>r.userId))];
+ const active=employees.filter(e=>e.active!==false),present=todayIds.length,absent=Math.max(0,active.length-present);
+ const withoutExit=employees.filter(e=>{
+  const x=records.filter(r=>r.userId===e.id&&new Date(r.timestamp).toDateString()===today);
+  return x.some(r=>r.type==='Entrada')&&!x.some(r=>r.type==='Saída')
+ });
+ return `<div class="min-h-screen flex bg-darkBg text-zinc-100">
+  <aside class="no-print hidden md:flex flex-col w-64 bg-cardBg border-r border-zinc-800/80 p-6 space-y-6">
+   <div class="flex items-center gap-2 cursor-pointer" onclick="navigate('terminal')"><div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs">L</div><span class="font-bold text-white text-base">L GONÇALVES</span></div>
+   <nav class="space-y-1 text-sm flex-1">
+    ${navBtn('dashboard','📊 Dashboard & Alertas')}${navBtn('employees','👥 Colaboradores & Horários')}${navBtn('records','⏱️ Registros & Relatórios')}${navBtn('audit','📝 Histórico de Ajustes')}${navBtn('settings','⚙️ Configurações')}${navBtn('updates','🔄 Atualizações')}
+   </nav>
+   <div class="space-y-2 pt-4 border-t border-zinc-800">
+    <button onclick="exportBackup()" class="w-full text-left px-3 py-2 text-xs bg-blue-600/20 text-blue-400 rounded-lg">💾 Baixar Backup</button>
+    <label class="block px-3 py-2 text-xs bg-zinc-800 text-zinc-200 rounded-lg text-center cursor-pointer">📂 Restaurar Backup<input type="file" accept=".json" onchange="importBackup(event)" class="hidden"></label>
+    <button onclick="adminLogout()" class="w-full text-left px-3 py-2 text-xs text-red-400">Sair do Painel</button>
+   </div>
+  </aside>
+  <main class="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto pb-20">
+   <div class="no-print flex justify-between items-center">
+    <div><h2 class="text-2xl font-bold text-white">Painel do Gestor</h2><p class="live-clock text-xs text-zinc-400 mt-1">--/--/---- --:--:--</p></div>
+    <div class="flex gap-2"><button onclick="openNewEmployeeModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-4 py-2 rounded-lg">+ Funcionário</button><button onclick="adminLogout()" class="md:hidden bg-zinc-800 text-xs px-3 py-2 rounded-lg">Sair</button></div>
+   </div>
+   ${adminTab==='dashboard'?renderDashboardTab(active.length,present,absent,withoutExit):''}
+   ${adminTab==='employees'?renderEmployeesTab(employees,records):''}
+   ${adminTab==='records'?renderRecordsTab(employees,records,settings):''}
+   ${adminTab==='audit'?renderAuditTab(audit):''}
+   ${adminTab==='settings'?renderSettingsTab(settings):''}
+   ${adminTab==='updates'?renderUpdatesTab():''}
+  </main>
+ </div>`
+}
+
+function navBtn(tab,label){
+ return `<button onclick="setAdminTab('${tab}')" class="w-full text-left px-3 py-2 rounded-lg ${adminTab===tab?'bg-blue-600/10 text-blue-500 font-medium':'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'}">${label}</button>`
+}
+
+function renderDashboardTab(total,present,absent,withoutExit){
+ return `<div class="space-y-6">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+   ${card('Ativos Hoje',total,'text-white')}${card('Presentes (Batidas)',present,'text-emerald-400')}${card('Ausentes / Sem Ponto',absent,'text-amber-400')}${card('Sem Saída Registrada',withoutExit.length,'text-red-400')}
+  </div>
+  ${withoutExit.length?`<div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5"><h3 class="text-sm font-semibold text-amber-400">⚠️ Funcionários sem saída registrada hoje</h3><div class="flex flex-wrap gap-2 mt-3">${withoutExit.map(e=>`<span class="bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full">${e.name}</span>`).join('')}</div></div>`:''}
+  <div class="bg-cardBg border border-zinc-800/80 rounded-2xl p-6"><h3 class="text-sm font-semibold text-white">Visão Geral da Obra</h3><p class="text-xs text-zinc-400 mt-3 leading-relaxed">O sistema registra as batidas através de códigos PIN de 4 dígitos. O gestor pode cadastrar colaboradores, editar registros, gerar relatórios e atualizar o sistema pelo código HTML.</p></div>
+ </div>`
+}
+function card(t,v,c){return `<div class="bg-cardBg border border-zinc-800/80 p-5 rounded-2xl"><span class="text-xs text-zinc-400">${t}</span><p class="text-2xl font-bold font-mono ${c} mt-2">${v}</p></div>`}
+
+function renderEmployeesTab(employees,records){
+ const today=new Date().toDateString();
+ return `<div class="space-y-6">
+  <div class="flex justify-between items-center"><h3 class="text-sm font-semibold text-white">Colaboradores & Horários de Hoje</h3><button onclick="openNewEmployeeModal()" class="bg-blue-600 text-white text-xs px-4 py-2 rounded-lg">+ Novo Funcionário</button></div>
+  <div class="bg-cardBg border border-zinc-800/80 rounded-2xl overflow-hidden">
+   <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-inputBg text-xs text-zinc-400 uppercase"><tr><th class="p-4">PIN</th><th class="p-4">Nome</th><th class="p-4">Entrada</th><th class="p-4">Saída</th><th class="p-4 text-right">Ações</th></tr></thead><tbody class="divide-y divide-zinc-800/60">
+   ${employees.length?employees.map(e=>{
+    const x=records.filter(r=>r.userId===e.id&&new Date(r.timestamp).toDateString()===today),en=x.find(r=>r.type==='Entrada'),sa=x.find(r=>r.type==='Saída');
+    return `<tr><td class="p-4 font-mono font-bold text-blue-400">${e.code}</td><td class="p-4 font-medium text-white">${e.name}<br><span class="text-[11px] text-zinc-400">${e.cargo||''}</span></td>
+    <td class="p-4 font-mono text-xs">${en?new Date(en.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'--:--'} <button onclick="quickEditDayTime('${e.id}','Entrada')" class="text-zinc-500 underline ml-1">Editar</button></td>
+    <td class="p-4 font-mono text-xs">${sa?new Date(sa.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'--:--'} <button onclick="quickEditDayTime('${e.id}','Saída')" class="text-zinc-500 underline ml-1">Editar</button></td>
+    <td class="p-4 text-right space-x-1"><button onclick="editEmployee('${e.id}')" class="bg-zinc-800 text-zinc-200 text-xs px-3 py-1.5 rounded-lg">Editar Dados</button><button onclick="toggleEmployeeStatus('${e.id}')" class="bg-zinc-800 text-zinc-300 text-xs px-3 py-1.5 rounded-lg">${e.active!==false?'Desativar':'Ativar'}</button></td></tr>`
+   }).join(''):`<tr><td colspan="5" class="p-6 text-center text-xs text-zinc-500">Nenhum funcionário cadastrado.</td></tr>`}
+   </tbody></table></div>
+  </div>
+ </div>`
+}
+
+function renderRecordsTab(employees,records,settings){
+ let filtered=records;
+ if(filterEmp!=='all')filtered=filtered.filter(r=>r.userId===filterEmp);
+ if(filterDate)filtered=filtered.filter(r=>new Date(r.timestamp).toISOString().split('T')[0]===filterDate);
+ return `<div class="space-y-6">
+  <div class="no-print bg-cardBg border border-zinc-800/80 rounded-2xl p-5 flex flex-wrap gap-4 items-center justify-between">
+   <h3 class="text-sm font-semibold text-white">Relatórios & Espelho de Ponto</h3>
+   <div class="flex flex-wrap gap-3 text-xs items-end">
+    <div><label class="text-zinc-400 block mb-1">Funcionário</label><select onchange="filterEmp=this.value;render()" class="bg-inputBg border border-zinc-800 px-3 py-1.5 rounded-lg text-white"><option value="all">Todos</option>${employees.map(e=>`<option value="${e.id}" ${filterEmp===e.id?'selected':''}>${e.name}</option>`).join('')}</select></div>
+    <div><label class="text-zinc-400 block mb-1">Data</label><input type="date" value="${filterDate}" onchange="filterDate=this.value;render()" class="bg-inputBg border border-zinc-800 px-3 py-1.5 rounded-lg text-white"></div>
+    <div><label class="text-zinc-400 block mb-1">Mês</label><input type="month" value="${reportMonth}" onchange="reportMonth=this.value;render()" class="bg-inputBg border border-zinc-800 px-3 py-1.5 rounded-lg text-white"></div>
+    <button onclick="generatePDF('day')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg">📄 PDF Dia</button>
+    <button onclick="generatePDF('month')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg">📄 PDF Mês</button>
+    <button onclick="openManualAdjustmentModal()" class="bg-zinc-800 text-zinc-200 px-3 py-1.5 rounded-lg">+ Adicionar Ponto</button>
+   </div>
+  </div>
+  <div class="bg-cardBg border border-zinc-800/80 rounded-2xl overflow-hidden shadow-xl p-6">
+   <div class="border-b border-zinc-800 pb-4 flex justify-between"><div><h2 class="text-lg font-bold text-white">${settings.companyName||'L GONÇALVES'}</h2><p class="text-xs text-zinc-400">Relatório Consolidado de Jornada de Trabalho</p></div><div class="text-right text-xs text-zinc-400"><p>CNPJ: ${settings.cnpj||''}</p><p>Emitido em: ${new Date().toLocaleDateString('pt-BR')}</p></div></div>
+   <div class="overflow-x-auto mt-4"><table class="w-full text-left text-sm"><thead class="bg-inputBg text-xs text-zinc-400 uppercase"><tr><th class="p-3">Funcionário</th><th class="p-3">Tipo</th><th class="p-3">Data e Hora</th><th class="p-3">Status</th><th class="p-3 text-right no-print">Ações</th></tr></thead><tbody class="divide-y divide-zinc-800/60">
+   ${filtered.length?filtered.slice().reverse().map(r=>{
+    const d=new Date(r.timestamp);let badge='<span class="text-zinc-500">Normal</span>';
+    if(r.type==='Entrada'){const h=d.getHours(),m=d.getMinutes();badge=(h>8||(h===8&&m>(settings.tolerance||10)))?'<span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded">⚠️ Atrasado</span>':'<span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded">No horário</span>'}
+    if(r.type==='Saída'&&d.getHours()>=18)badge='<span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded">⭐ Hora Extra</span>';
+    return `<tr><td class="p-3 font-medium text-white">${r.userName}</td><td class="p-3"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">${r.type}</span></td><td class="p-3 font-mono text-xs">${d.toLocaleString('pt-BR')}</td><td class="p-3 text-xs">${badge}</td><td class="p-3 text-right no-print"><button onclick="editFullRecord('${r.id}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs px-2.5 py-1.5 rounded">Editar Registro</button><button onclick="deleteRecord('${r.id}')" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs px-2.5 py-1.5 rounded ml-1">Excluir</button></td></tr>`
+   }).join(''):`<tr><td colspan="5" class="p-6 text-center text-xs text-zinc-500">Nenhum registro encontrado.</td></tr>`}
+   </tbody></table></div>
+  </div>
+ </div>`
+}
+
+function renderAuditTab(logs){
+ return `<div class="space-y-6"><h3 class="text-sm font-semibold text-white">Histórico de Alterações Administrativas</h3><div class="bg-cardBg border border-zinc-800/80 rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-inputBg text-xs text-zinc-400 uppercase"><tr><th class="p-4">Responsável</th><th class="p-4">Descrição</th><th class="p-4">Data e Hora</th></tr></thead><tbody class="divide-y divide-zinc-800/60">${logs.length?logs.slice().reverse().map(a=>`<tr><td class="p-4 font-medium text-white">${a.adminName}</td><td class="p-4 text-xs">${a.description}</td><td class="p-4 font-mono text-xs">${new Date(a.timestamp).toLocaleString('pt-BR')}</td></tr>`).join(''):`<tr><td colspan="3" class="p-6 text-center text-xs text-zinc-500">Nenhum ajuste registrado.</td></tr>`}</tbody></table></div></div></div>`
+}
+
+function renderSettingsTab(s){
+ return `<div class="max-w-2xl mx-auto bg-cardBg border border-zinc-800/80 rounded-2xl p-6 space-y-6"><h3 class="text-lg font-bold text-white">Configurações Gerais da Empresa / Obra</h3>
+ <form onsubmit="saveCompanySettings(event)" class="space-y-4 text-xs">
+  <div><label class="block text-zinc-400 mb-1">Nome da Empresa / Obra</label><input id="set-company-name" value="${s.companyName||''}" required class="w-full bg-inputBg border border-zinc-800 px-3 py-2 rounded-lg text-white"></div>
+  <div><label class="block text-zinc-400 mb-1">CNPJ</label><input id="set-cnpj" value="${s.cnpj||''}" class="w-full bg-inputBg border border-zinc-800 px-3 py-2 rounded-lg text-white"></div>
+  <div><label class="block text-zinc-400 mb-1">Fuso Horário</label><input id="set-timezone" value="${s.timezone||'America/Sao_Paulo'}" class="w-full bg-inputBg border border-zinc-800 px-3 py-2 rounded-lg text-white"></div>
+  <div><label class="block text-zinc-400 mb-1">Tolerância de Atraso (Minutos)</label><input type="number" id="set-tolerance" value="${s.tolerance??10}" class="w-full bg-inputBg border border-zinc-800 px-3 py-2 rounded-lg text-white"></div>
+  <button class="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm">Salvar Configurações</button>
+ </form></div>`
+}
+
+function renderUpdatesTab(){
+ return `<div class="max-w-4xl mx-auto space-y-6">
+  <div class="bg-cardBg border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+   <div class="flex justify-between items-center border-b border-zinc-800 pb-4"><div><h3 class="text-lg font-bold text-white">Central de Atualizações</h3><p class="text-xs text-zinc-400 mt-1">Atualize o sistema diretamente através de um novo código HTML.</p></div><span class="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-xs">Sistema Ativo</span></div>
+   <div class="bg-inputBg border border-zinc-800 rounded-xl p-4 flex justify-between items-center"><div><p class="text-xs text-zinc-400">Versão instalada</p><p class="text-lg font-bold text-blue-400 mt-1">v2.7.1</p></div><button onclick="checkForUpdates()" class="bg-blue-600 text-white text-xs px-4 py-2 rounded-lg">Verificar Atualizações</button></div>
+   <div class="space-y-3">
+    <div><h4 class="text-sm font-semibold text-white">Atualizar sistema pelo código HTML</h4><p class="text-xs text-zinc-500 mt-1">Cole o código HTML completo da nova versão. Os dados serão preservados.</p></div>
+    <textarea id="system-html-update" spellcheck="false" placeholder="Cole aqui o código HTML completo da nova versão..." class="w-full h-96 bg-[#0b0b0e] border border-zinc-800 rounded-xl p-4 text-xs text-zinc-300 font-mono resize-y focus:outline-none focus:border-blue-600"></textarea>
+    <div class="flex flex-wrap gap-2">
+     <button onclick="previewHTMLUpdate()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2.5 rounded-lg text-xs">Visualizar Código</button>
+     <button onclick="applyHTMLUpdate()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg text-xs">Aplicar Atualização</button>
+     <button onclick="restorePreviousHTML()" class="bg-amber-500/10 text-amber-400 px-4 py-2.5 rounded-lg text-xs">Restaurar Versão Anterior</button>
+     <button onclick="clearHTMLUpdate()" class="bg-red-500/10 text-red-400 px-4 py-2.5 rounded-lg text-xs">Limpar</button>
+    </div>
+   </div>
+   <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4"><p class="text-xs text-amber-400 font-medium">⚠️ Atenção</p><p class="text-xs text-zinc-400 mt-1">Antes da atualização, os dados são salvos em backup automático. A atualização substitui a interface atual, mas preserva os dados armazenados no localStorage.</p></div>
+  </div>
+  <div class="bg-cardBg border border-zinc-800/80 rounded-2xl p-6 space-y-4"><h4 class="text-sm font-semibold text-white">Histórico de versões</h4>
+   <div class="p-4 bg-inputBg rounded-xl border border-zinc-800/80"><div class="flex justify-between"><span class="font-bold text-white text-sm">Versão 2.7.1</span><span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs">Atual</span></div><p class="text-xs text-zinc-400 mt-2">Edição completa de registros, exclusão de registros e atualização através de código HTML.</p></div>
+   <div class="p-4 bg-inputBg rounded-xl border border-zinc-800/80 opacity-70"><div class="flex justify-between"><span class="font-bold text-white text-sm">Versão 2.6.0</span><span class="text-zinc-500 text-xs">Anterior</span></div><p class="text-xs text-zinc-400 mt-2">Edição rápida de Entrada e Saída diretamente na tabela de colaboradores.</p></div>
+  </div>
+ </div>`
+}
+
+function openNewEmployeeModal(){
+ const name=prompt('Nome completo do funcionário:');if(!name)return;
+ const code=prompt('Defina o código PIN de 4 dígitos:');if(!code)return;
+ if(!/^\d{4}$/.test(code)){alert('O código deve ter exatamente 4 dígitos.');return}
+ const cargo=prompt('Cargo:')||'',setor=prompt('Setor:')||'',users=DB.getUsers();
+ if(users.some(u=>u.code===code))return alert('Este código PIN já está em uso.');
+ users.push({id:'u_'+Math.random().toString(36).slice(2),name:name.trim(),code,cargo,setor,role:'EMPLOYEE',active:true});DB.saveUsers(users);
+ DB.saveAudit({adminName:currentAdmin.name,description:`Cadastrou o funcionário ${name} (PIN: ${code})`,timestamp:new Date().toISOString()});
+ alert('Funcionário cadastrado com sucesso!');render()
+}
+
+function editEmployee(id){
+ const users=DB.getUsers(),u=users.find(x=>x.id===id);if(!u)return;
+ const name=prompt('Editar Nome:',u.name);if(name===null)return;
+ const code=prompt('Editar Código PIN (4 dígitos):',u.code);if(code===null)return;
+ if(!/^\d{4}$/.test(code)){alert('O código PIN deve ter exatamente 4 dígitos.');return}
+ if(users.some(x=>x.code===code&&x.id!==id))return alert('PIN já utilizado.');
+ const cargo=prompt('Editar Cargo:',u.cargo||'');const setor=prompt('Editar Setor:',u.setor||'');
+ u.name=name.trim();u.code=code.trim();u.cargo=cargo??u.cargo;u.setor=setor??u.setor;DB.saveUsers(users);
+ DB.saveAudit({adminName:currentAdmin.name,description:`Editou dados do funcionário ${u.name}`,timestamp:new Date().toISOString()});render()
+}
+
+function toggleEmployeeStatus(id){
+ const users=DB.getUsers(),u=users.find(x=>x.id===id);if(!u)return;
+ u.active=u.active===false;DB.saveUsers(users);
+ DB.saveAudit({adminName:currentAdmin.name,description:`Alterou status de ${u.name} para ${u.active?'Ativo':'Desativado'}`,timestamp:new Date().toISOString()});render()
+}
+
+function quickEditDayTime(userId,type){
+ const user=DB.getUsers().find(u=>u.id===userId);if(!user)return;
+ const records=DB.getRecords(),today=new Date().toDateString();
+ let rec=records.find(r=>r.userId===userId&&r.type===type&&new Date(r.timestamp).toDateString()===today);
+ const value=prompt(`Definir horário de ${type} para ${user.name} hoje:\nFormato: AAAA-MM-DDTHH:mm`,rec?new Date(rec.timestamp).toISOString().slice(0,16):new Date().toISOString().slice(0,16));
+ if(!value)return;const d=new Date(value);if(isNaN(d.getTime()))return alert('Horário inválido.');
+ if(rec)rec.timestamp=d.toISOString();else records.push({id:'r_'+Math.random().toString(36).slice(2),userId:user.id,userName:user.name,cargo:user.cargo,type,timestamp:d.toISOString()});
+ DB.saveRecordsDirect(records);DB.saveAudit({adminName:currentAdmin.name,description:`Definiu ${type} de ${user.name} para ${d.toLocaleString('pt-BR')}`,timestamp:new Date().toISOString()});render()
+}
+
+function editFullRecord(recordId){
+ const records=DB.getRecords(),users=DB.getUsers().filter(u=>u.role==='EMPLOYEE'),rec=records.find(r=>r.id===recordId);
+ if(!rec)return alert('Registro não encontrado.');
+ const list=users.map(u=>`${u.id} = ${u.name} | PIN: ${u.code}`).join('\n');
+ const userId=prompt(`EDITAR REGISTRO\n\nFuncionários:\n${list}\n\nDigite o ID do funcionário:`,rec.userId);if(userId===null)return;
+ const user=users.find(u=>u.id===userId.trim());if(!user)return alert('Funcionário não encontrado.');
+ const type=prompt('Tipo:\nEntrada\nIntervalo\nRetorno\nSaída',rec.type);if(type===null)return;
+ if(!['Entrada','Intervalo','Retorno','Saída'].includes(type.trim()))return alert('Tipo inválido.');
+ const dt=prompt('Data e horário:\nFormato: AAAA-MM-DDTHH:mm',new Date(rec.timestamp).toISOString().slice(0,16));if(dt===null)return;
+ const d=new Date(dt);if(isNaN(d.getTime()))return alert('Data ou horário inválido.');
+ const old=`${rec.userName} | ${rec.type} | ${new Date(rec.timestamp).toLocaleString('pt-BR')}`;
+ rec.userId=user.id;rec.userName=user.name;rec.cargo=user.cargo;rec.type=type.trim();rec.timestamp=d.toISOString();
+ DB.saveRecordsDirect(records);DB.saveAudit({adminName:currentAdmin.name,description:`Editou registro. Antes: ${old}. Depois: ${user.name} | ${rec.type} | ${d.toLocaleString('pt-BR')}`,timestamp:new Date().toISOString()});
+ alert('Registro atualizado com sucesso!');render()
+}
+
+function deleteRecord(id){
+ const records=DB.getRecords(),rec=records.find(r=>r.id===id);if(!rec)return;
+ if(!confirm(`Excluir o registro de ${rec.userName} (${rec.type})?`))return;
+ DB.saveRecordsDirect(records.filter(r=>r.id!==id));
+ DB.saveAudit({adminName:currentAdmin.name,description:`Excluiu registro de ${rec.userName} (${rec.type})`,timestamp:new Date().toISOString()});
+ render()
+}
+
+function openManualAdjustmentModal(){
+ const users=DB.getUsers().filter(u=>u.role==='EMPLOYEE'),code=prompt(`Digite o PIN do funcionário:\n\n${users.map(u=>`PIN: ${u.code} - ${u.name}`).join('\n')}`);if(!code)return;
+ const u=users.find(x=>x.code===code);if(!u)return alert('Funcionário não encontrado.');
+ const type=prompt('Tipo: Entrada, Intervalo, Retorno ou Saída');if(!['Entrada','Intervalo','Retorno','Saída'].includes(type))return alert('Tipo inválido.');
+ DB.saveRecord({id:'r_'+Math.random().toString(36).slice(2),userId:u.id,userName:u.name,cargo:u.cargo,type,timestamp:new Date().toISOString()});
+ DB.saveAudit({adminName:currentAdmin.name,description:`Adicionou manualmente ${type} para ${u.name}`,timestamp:new Date().toISOString()});render()
+}
+
+function saveCompanySettings(e){
+ e.preventDefault();
+ const s={companyName:document.getElementById('set-company-name').value.trim(),cnpj:document.getElementById('set-cnpj').value.trim(),timezone:document.getElementById('set-timezone').value.trim(),tolerance:parseInt(document.getElementById('set-tolerance').value)||10};
+ DB.saveSettings(s);DB.saveAudit({adminName:currentAdmin.name,description:`Atualizou configurações da empresa (${s.companyName})`,timestamp:new Date().toISOString()});alert('Configurações salvas!');render()
+}
+
+function generatePDF(type){
+ if(type==='day'&&!filterDate)filterDate=new Date().toISOString().split('T')[0];
+ window.print()
+}
+
+function exportBackup(){
+ const data={users:DB.getUsers(),records:DB.getRecords(),audit:DB.getAudit(),settings:DB.getSettings(),backupDate:new Date().toISOString()};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=`backup-lgoncalves-${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url)
+}
+
+function importBackup(event){
+ const file=event.target.files[0];if(!file)return;
+ const reader=new FileReader();reader.onload=e=>{
+  try{
+   const d=JSON.parse(e.target.result);
+   if(!d.users||!d.records)throw new Error();
+   localStorage.setItem('lgoncalves_users',JSON.stringify(d.users));localStorage.setItem('lgoncalves_records',JSON.stringify(d.records));
+   if(d.audit)localStorage.setItem('lgoncalves_audit',JSON.stringify(d.audit));
+   if(d.settings)localStorage.setItem('lgoncalves_settings',JSON.stringify(d.settings));
+   alert('Backup restaurado com sucesso!');render()
+  }catch(err){alert('Arquivo de backup inválido.')}
+ };reader.readAsText(file)
+}
+
+function createSystemBackupBeforeUpdate(){
+ const backup={users:DB.getUsers(),records:DB.getRecords(),audit:DB.getAudit(),settings:DB.getSettings(),backupDate:new Date().toISOString(),type:'automatic-system-update-backup'};
+ localStorage.setItem('lgoncalves_update_backup',JSON.stringify(backup));return backup
+}
+
+function previewHTMLUpdate(){
+ const area=document.getElementById('system-html-update');if(!area)return;
+ const html=area.value.trim();if(!html)return alert('Cole primeiro o código HTML.');
+ const w=window.open('','_blank','width=1200,height=800');
+ if(!w)return alert('O navegador bloqueou a janela. Permita pop-ups.');
+ w.document.open();w.document.write(html);w.document.close()
+}
+
+function applyHTMLUpdate(){
+ const area=document.getElementById('system-html-update');if(!area)return;
+ const html=area.value.trim();
+ if(!html)return alert('Cole o código HTML completo da nova versão.');
+ if(!/<html[\s>]/i.test(html))return alert('O código não parece ser um HTML completo.');
+ if(!confirm('ATUALIZAR SISTEMA\n\nSerá criado um backup automático dos dados antes da atualização.\n\nDeseja continuar?'))return;
+ try{
+  createSystemBackupBeforeUpdate();
+  localStorage.setItem('lgoncalves_previous_html',document.documentElement.outerHTML);
+  localStorage.setItem('lgoncalves_system_html',html);
+  DB.saveAudit({adminName:currentAdmin?currentAdmin.name:'Administrador',description:'Atualizou o sistema através de código HTML.',timestamp:new Date().toISOString()});
+  document.open();document.write(html);document.close()
+ }catch(e){console.error(e);alert('Não foi possível atualizar. Os dados continuam preservados.')}
+}
+
+function restorePreviousHTML(){
+ const previous=localStorage.getItem('lgoncalves_previous_html');
+ if(!previous)return alert('Nenhuma versão anterior foi encontrada.');
+ if(!confirm('Restaurar a versão anterior do HTML?'))return;
+ try{document.open();document.write(previous);document.close()}catch(e){alert('Não foi possível restaurar a versão anterior.')}
+}
+
+function clearHTMLUpdate(){
+ const area=document.getElementById('system-html-update');if(!area)return;
+ if(area.value.trim()&&!confirm('Deseja apagar o código HTML colado?'))return;
+ area.value=''
+}
+
+function checkForUpdates(){
+ alert('O sistema L GONÇALVES está atualizado.\n\nVersão atual: v2.7.1\n\nPara instalar uma nova versão, utilize "Atualizar sistema pelo código HTML".')
+}
+
+render();
+</script>
+</body>
+</html>
